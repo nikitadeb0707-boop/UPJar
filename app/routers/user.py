@@ -1,5 +1,3 @@
-#create get endpoint to get user data -
-#  frequency of investmments, total amout to be invested, profit and loss incurred
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from .. import models, schemas, database
@@ -8,6 +6,7 @@ router = APIRouter(
     prefix="/users",
     tags=["Users"]
 )
+
 
 # ---------- POST: set investment preferences ----------
 @router.post(
@@ -28,8 +27,10 @@ def set_user_investment_data(
             detail=f"User with id {user_id} not found"
         )
 
+    # Save all three fields
     user.investment_frequency = investment_data.investment_frequency
     user.total_amount_to_invest = investment_data.total_amount_to_invest
+    user.taxable_frequency = investment_data.taxable_frequency
 
     db.commit()
     db.refresh(user)
@@ -37,7 +38,7 @@ def set_user_investment_data(
     return user
 
 
-# ---------- GET: get investment preferences + profit/loss ----------
+# ---------- GET: get investment data + profit/loss ----------
 @router.get(
     "/{user_id}/investments",
     response_model=schemas.UserInvestmentResponse
@@ -54,4 +55,5 @@ def get_user_investment_data(
             detail=f"User with id {user_id} not found"
         )
 
+    # Returns: frequency, amount, taxable_frequency, total_profit_loss
     return user

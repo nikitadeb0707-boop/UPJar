@@ -16,7 +16,7 @@ class TokenData(BaseModel):
 class UserInvestmentCreate(BaseModel):
     investment_frequency: str = Field(..., example="Monthly")  # e.g., Daily, Weekly, Monthly
     total_amount_to_invest: float = Field(..., gt=0, example=500.0)
-    taxable_frequency: Optional[str] = Field(None, example="Quarterly")  # e.g., Quarterly, Annually
+    taxable_frequency: int = Field(..., example=2)  
 # Schema for response payload
 class UserInvestmentResponse(BaseModel):
     user_id: int
