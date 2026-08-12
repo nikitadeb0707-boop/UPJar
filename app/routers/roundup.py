@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Body,Response,status,HTTPException, Depends,APIRouter
 from sqlalchemy.orm import Session
-import schemas,oauth2,models,database
+from .. import schemas,oauth2,models,database
 import uuid
 
 router= APIRouter(
@@ -9,7 +9,7 @@ router= APIRouter(
 )  
 
 @router.post("/ingest")
-def ingest_transaction(post: schemas.TransactionCreate,current_user: models.User = Depends(oauth2.getcurrentuser),db: Session = Depends(database.getdb)):
+def ingest_transaction(post: schemas.TransactionCreate,current_user: models.User = Depends(oauth2.getcurrentuser),db: Session = Depends(database.get_db)):
     # User is already identified by JWT
     user_id = current_user.user_id
 
@@ -40,7 +40,7 @@ def ingest_transaction(post: schemas.TransactionCreate,current_user: models.User
     return new_transaction
 
 @router.get("/")
-def get_transactions(current_user: models.User = Depends(oauth2.getcurrentuser),db: Session = Depends(database.getdb)):
+def get_transactions(current_user: models.User = Depends(oauth2.getcurrentuser),db: Session = Depends(database.get_db)):
     transactions = db.query(models.Transaction).filter(models.Transaction.user_id == current_user.user_id).all()
 
     return transactions
