@@ -19,7 +19,7 @@ def set_user_investment_data(
     investment_data: schemas.UserInvestmentCreate,
     db: Session = Depends(database.get_db)
 ):
-    user = db.query(models.User).filter(models.User.id == user_id).first()
+    user = db.query(models.User).filter(models.User.user_id == user_id).first()
 
     if not user:
         raise HTTPException(
@@ -47,7 +47,7 @@ def get_user_investment_data(
     user_id: int,
     db: Session = Depends(database.get_db)
 ):
-    user = db.query(models.User).filter(models.User.id == user_id).first()
+    user = db.query(models.User).filter(models.User.user_id == user_id).first()
 
     if not user:
         raise HTTPException(

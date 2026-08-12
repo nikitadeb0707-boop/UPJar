@@ -4,4 +4,8 @@
 2. GET /transactions
 3. post /auth/login
 4. post /users/{user_id}/investments
-5. 
+
+use these in .env
+DATABASE_URL=
+SUPABASE_URL=
+SUPABASE_KEY=
