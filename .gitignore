@@ -32,3 +32,4 @@ Thumbs.db
 
 # Jupyter (if any exploration notebooks)
 .ipynb_checkpoints/
+pyproject.toml

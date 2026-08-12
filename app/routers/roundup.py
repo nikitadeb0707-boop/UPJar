@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Body,Response,status,HTTPException, Depends,APIRouter
 from sqlalchemy.orm import Session
-import schemas,oauth2,models,database
+from .. import schemas,oauth2,models,database
 import uuid
 from datetime import datetime, timedelta
 from sqlalchemy import func as sqlfunc
@@ -11,7 +11,9 @@ router= APIRouter(
 )  
 
 @router.post("/ingest")
-def ingest_transaction(post: schemas.TransactionCreate,current_user: models.User = Depends(oauth2.getcurrentuser),db: Session = Depends(database.getdb)):
+def ingest_transaction(post: schemas.TransactionCreate,
+                       current_user: models.User = Depends(oauth2.getcurrentuser),
+                       db: Session = Depends(database.get_db)):
     # User is already identified by JWT
     user_id = current_user.user_id
 
@@ -25,7 +27,7 @@ def ingest_transaction(post: schemas.TransactionCreate,current_user: models.User
     settings = db.query(models.InvestmentSettings).filter(models.InvestmentSettings.user_id == user_id).first()
 
     today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-    todays_count = db.query(sqlfunc.count(models.Transaction.transaction_id)).filter(models.Transaction.user_id == user_id,models.Transaction.created_at >= today_start).scalar()
+    todays_count = db.query(sqlfunc.count(models.Transaction.transaction_id)).filter(models.Transaction.user_id == user_id,models.Transaction.timestamp >= today_start).scalar()
 
     apply_roundup = settings is None or todays_count < settings.daily_tx_limit
 
@@ -50,7 +52,7 @@ def ingest_transaction(post: schemas.TransactionCreate,current_user: models.User
     return new_transaction
 
 @router.get("/")
-def get_transactions(current_user: models.User = Depends(oauth2.getcurrentuser),db: Session = Depends(database.getdb)):
+def get_transactions(current_user: models.User = Depends(oauth2.getcurrentuser),db: Session = Depends(database.get_db)):
     transactions = db.query(models.Transaction).filter(models.Transaction.user_id == current_user.user_id).all()
 
     return transactions
