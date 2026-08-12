@@ -1,16 +1,29 @@
-from database import Base
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship,func
-from sqlalchemy import column,Integer, String, Boolean, text, TIMESTAMP, ForeignKey,  Numeric
 from datetime import datetime
 from decimal import Decimal
 
+from sqlalchemy import (
+    TIMESTAMP,
+    Boolean,
+    ForeignKey,
+    Integer,
+    Numeric,
+    String,
+    func,
+)
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from .database import Base
 class User(Base):
     __tablename__ = "users"
     user_id: Mapped[int] = mapped_column(primary_key=True)
-    phonenumber: Mapped[str] = mapped_column(String, nullable=False)
+    phonenumber: Mapped[str] = mapped_column(String,unique=True,index=True, nullable=False)
+    email: Mapped[str] = mapped_column(String, nullable=False)
     upi_id: Mapped[str] = mapped_column(String, nullable=False)
     investment_ledger_id: Mapped[int | None] = mapped_column(nullable=True)
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now())
+    investment_frequency: Mapped[str | None] = mapped_column("investment_frequency", nullable=True)
+    total_amount_to_invest: Mapped[Decimal | None] = mapped_column("total_amount_to_invest", Numeric(10, 2), nullable=True)
+    taxable_frequency: Mapped[int | None] = mapped_column("taxable_frequency", Integer, nullable=True)
 
 
 class Transaction(Base):
