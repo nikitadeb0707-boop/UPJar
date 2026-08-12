@@ -23,7 +23,7 @@ class UserInvestmentResponse(BaseModel):
     user_id: int
     investment_frequency: str
     total_amount_to_invest: float
-    total_profit_loss: float
+    total_profit_loss: Optional [float] = None
 
     class Config:
         from_attributes = True
