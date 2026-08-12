@@ -1,0 +1,34 @@
+# Environments
+.env
+.env.local
+venv/
+env/
+.venv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+*.egg
+build/
+dist/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Alembic (only if you generate local sqlite dbs for testing — DO NOT ignore the migrations folder itself)
+*.db
+*.sqlite3
+
+# Jupyter (if any exploration notebooks)
+.ipynb_checkpoints/
