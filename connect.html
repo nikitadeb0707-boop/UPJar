@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Connect Account | RoundUp</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body class="auth-body">
+
+    <div class="auth-container">
+
+        <a href="index.html" class="logo auth-logo">
+            <span class="logo-icon">✦</span>
+            RoundUp
+        </a>
+
+
+        <div class="connect-box">
+
+            <div class="connect-icon">
+                🏦
+            </div>
+
+
+            <h1>
+                Connect your account
+            </h1>
+
+
+            <p>
+                Connect your UPI or bank account to let RoundUp
+                track transactions and calculate your spare change.
+            </p>
+
+
+            <div class="account-options">
+
+                <button
+                    class="account-option"
+                    onclick="connectAccount('UPI')"
+                >
+
+                    <span class="option-icon">
+                        📱
+                    </span>
+
+                    <div>
+                        <strong>
+                            UPI
+                        </strong>
+
+                        <small>
+                            Connect your UPI account
+                        </small>
+                    </div>
+
+                    <span>→</span>
+
+                </button>
+
+
+                <button
+                    class="account-option"
+                    onclick="connectAccount('Bank Account')"
+                >
+
+                    <span class="option-icon">
+                        🏦
+                    </span>
+
+                    <div>
+                        <strong>
+                            Bank Account
+                        </strong>
+
+                        <small>
+                            Connect a bank account
+                        </small>
+                    </div>
+
+                    <span>→</span>
+
+                </button>
+
+            </div>
+
+
+            <button
+                class="skip-btn"
+                onclick="skipConnection()"
+            >
+                Skip for Demo
+            </button>
+
+
+            <p class="security-note">
+                🔒 Demo only — no real bank credentials or
+                payment PINs are collected.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
