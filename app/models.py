@@ -34,3 +34,32 @@ class InvestmentSettings(Base):
     period_days: Mapped[int] = mapped_column(Integer, nullable=False)
     daily_tx_limit: Mapped[int] = mapped_column(Integer, nullable=False)
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now())
+
+class InvestmentInstrument(Base):
+    __tablename__ = "investment_instruments"
+
+    instrument_id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    simulated_nav: Mapped[Decimal] = mapped_column(Numeric(10, 4), nullable=False)
+    type: Mapped[str] = mapped_column(String, nullable=False)
+
+
+class AllocationPreference(Base):
+    __tablename__ = "allocation_preferences"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.user_id"), nullable=False)
+    instrument_id: Mapped[int] = mapped_column(ForeignKey("investment_instruments.instrument_id"), nullable=False)
+    percentage: Mapped[Decimal] = mapped_column(Numeric(5, 2), nullable=False)
+
+
+class InvestmentLedger(Base):
+    __tablename__ = "investment_ledger"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.user_id"), nullable=False)
+    instrument_id: Mapped[int] = mapped_column(ForeignKey("investment_instruments.instrument_id"), nullable=False)
+    amount_invested: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    units_bought: Mapped[Decimal] = mapped_column(Numeric(14, 6), nullable=False)
+    nav_at_purchase: Mapped[Decimal] = mapped_column(Numeric(10, 4), nullable=False)
+    timestamp: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now())
