@@ -1,10 +1,10 @@
 /* =========================================================
-   ROUNDUP - COMPLETE JAVASCRIPT
+   UPJAR - FINAL JAVASCRIPT
    ========================================================= */
 
 
 /* =========================================================
-   1. DEFAULT USER DATA
+   1. DEFAULT USER
    ========================================================= */
 
 const defaultUser = {
@@ -20,22 +20,22 @@ const defaultUser = {
 
     settings: {
         cycle: "monthly",
-        threshold: 1000,
-        frequency: 2
+        threshold: 100,
+        frequency: 5
     },
 
-    lastTransactionDate: ""
+    lastTransactionDate: "",
+    todayRoundOffCount: 0
 };
 
 
 /* =========================================================
-   2. GET CURRENT USER
+   2. GET USER
    ========================================================= */
 
 function getUser() {
 
-    const savedUser =
-        localStorage.getItem("roundupUser");
+    const savedUser = localStorage.getItem("roundupUser");
 
     if (!savedUser) {
         return JSON.parse(JSON.stringify(defaultUser));
@@ -45,39 +45,34 @@ function getUser() {
 
         const user = JSON.parse(savedUser);
 
-        /* Make sure missing properties don't break app */
+        user.transactions = user.transactions || [];
 
-        if (!user.transactions) {
-            user.transactions = [];
-        }
+        user.settings = user.settings || {};
 
-        if (!user.settings) {
+        user.settings.cycle =
+            user.settings.cycle || "monthly";
 
-            user.settings = {
-                cycle: "monthly",
-                threshold: 1000,
-                frequency: 2
-            };
+        user.settings.threshold =
+            Number(user.settings.threshold) || 100;
 
-        }
+        user.settings.frequency =
+            Number(user.settings.frequency) || 5;
 
-        if (user.balance === undefined) {
-            user.balance = 0;
-        }
+        user.balance =
+            Number(user.balance) || 0;
 
-        if (user.roundUpBalance === undefined) {
-            user.roundUpBalance = 0;
-        }
+        user.roundUpBalance =
+            Number(user.roundUpBalance) || 0;
 
-        if (user.totalSaved === undefined) {
-            user.totalSaved = 0;
-        }
+        user.totalSaved =
+            Number(user.totalSaved) || 0;
+
+        user.todayRoundOffCount =
+            Number(user.todayRoundOffCount) || 0;
 
         return user;
 
     } catch (error) {
-
-        console.log("Error reading user data.");
 
         return JSON.parse(
             JSON.stringify(defaultUser)
@@ -106,174 +101,115 @@ function saveUser(user) {
 
 function setupRegister() {
 
-    const registerForm =
+    const form =
         document.getElementById("registerForm");
 
-    /* Not on register page */
-
-    if (!registerForm) {
-        return;
-    }
+    if (!form) return;
 
 
-    registerForm.addEventListener(
-        "submit",
-        function (event) {
+    form.addEventListener("submit", function(event) {
 
-            event.preventDefault();
+        event.preventDefault();
 
 
-            /* Get inputs */
+        const name =
+            document.getElementById("registerName").value.trim();
 
-            const nameInput =
-                document.getElementById("registerName");
+        const email =
+            document.getElementById("registerEmail").value.trim();
 
-            const emailInput =
-                document.getElementById("registerEmail");
+        const password =
+            document.getElementById("registerPassword").value;
 
-            const passwordInput =
-                document.getElementById("registerPassword");
-
-            const confirmPasswordInput =
-                document.getElementById("confirmPassword");
+        const confirmPassword =
+            document.getElementById("confirmPassword").value;
 
 
-            const name =
-                nameInput.value.trim();
+        if (!name || !email || !password || !confirmPassword) {
 
-            const email =
-                emailInput.value.trim();
-
-            const password =
-                passwordInput.value;
-
-            const confirmPassword =
-                confirmPasswordInput.value;
-
-
-            /* -----------------------------------------
-               VALIDATION
-            ----------------------------------------- */
-
-            if (!name || !email || !password) {
-
-                alert(
-                    "Please fill all the fields."
-                );
-
-                return;
-            }
-
-
-            if (password !== confirmPassword) {
-
-                alert(
-                    "Passwords do not match."
-                );
-
-                return;
-            }
-
-
-            /* -----------------------------------------
-               CHECK EXISTING ACCOUNT
-            ----------------------------------------- */
-
-            const existingUser =
-                localStorage.getItem(
-                    "registeredUser"
-                );
-
-
-            if (existingUser) {
-
-                const oldUser =
-                    JSON.parse(existingUser);
-
-
-                if (
-                    oldUser.email.toLowerCase() ===
-                    email.toLowerCase()
-                ) {
-
-                    alert(
-                        "This email is already registered. Please login."
-                    );
-
-                    return;
-                }
-            }
-
-
-            /* -----------------------------------------
-               CREATE NEW USER
-            ----------------------------------------- */
-
-            const newUser = {
-
-                name: name,
-
-                email: email,
-
-                password: password,
-
-                balance: 0,
-
-                roundUpBalance: 0,
-
-                totalSaved: 0,
-
-                transactions: [],
-
-                settings: {
-
-                    cycle: "monthly",
-
-                    threshold: 1000,
-
-                    frequency: 2
-
-                },
-
-                lastTransactionDate: ""
-
-            };
-
-
-            /* -----------------------------------------
-               SAVE ACCOUNT
-            ----------------------------------------- */
-
-            localStorage.setItem(
-                "registeredUser",
-                JSON.stringify(newUser)
-            );
-
-
-            localStorage.setItem(
-                "roundupUser",
-                JSON.stringify(newUser)
-            );
-
-
-            localStorage.setItem(
-                "isLoggedIn",
-                "true"
-            );
-
-
-            alert(
-                "Account created successfully!"
-            );
-
-
-            /* Go to dashboard */
-
-            window.location.href =
-                "dashboard.html";
+            alert("Please fill all the fields.");
+            return;
 
         }
-    );
+
+
+        if (password !== confirmPassword) {
+
+            alert("Passwords do not match.");
+            return;
+
+        }
+
+
+        const existing =
+            localStorage.getItem("registeredUser");
+
+
+        if (existing) {
+
+            const oldUser =
+                JSON.parse(existing);
+
+            if (
+                oldUser.email &&
+                oldUser.email.toLowerCase() ===
+                email.toLowerCase()
+            ) {
+
+                alert(
+                    "This email is already registered. Please login."
+                );
+
+                return;
+            }
+        }
+
+
+        const newUser = {
+
+            name: name,
+            email: email,
+            password: password,
+
+            balance: 0,
+            roundUpBalance: 0,
+            totalSaved: 0,
+
+            transactions: [],
+
+            settings: {
+                cycle: "monthly",
+                threshold: 100,
+                frequency: 5
+            },
+
+            lastTransactionDate: "",
+            todayRoundOffCount: 0
+        };
+
+
+        localStorage.setItem(
+            "registeredUser",
+            JSON.stringify(newUser)
+        );
+
+
+        saveUser(newUser);
+
+
+        localStorage.setItem(
+            "isLoggedIn",
+            "true"
+        );
+
+
+        alert("Account created successfully!");
+
+
+        window.location.href =
+            "dashboard.html";
+
+    });
 
 }
 
@@ -284,123 +220,90 @@ function setupRegister() {
 
 function setupLogin() {
 
-    const loginForm =
+    const form =
         document.getElementById("loginForm");
 
-    /* Not on login page */
-
-    if (!loginForm) {
-        return;
-    }
+    if (!form) return;
 
 
-    loginForm.addEventListener(
-        "submit",
-        function (event) {
+    form.addEventListener("submit", function(event) {
 
-            event.preventDefault();
+        event.preventDefault();
 
 
-            /* Get inputs */
+        const email =
+            document.getElementById("loginEmail").value.trim();
 
-            const emailInput =
-                document.getElementById("loginEmail");
-
-            const passwordInput =
-                document.getElementById("loginPassword");
+        const password =
+            document.getElementById("loginPassword").value;
 
 
-            const email =
-                emailInput.value.trim();
-
-            const password =
-                passwordInput.value;
+        const savedAccount =
+            localStorage.getItem("registeredUser");
 
 
-            /* -----------------------------------------
-               GET REGISTERED USER
-            ----------------------------------------- */
-
-            const savedAccount =
-                localStorage.getItem(
-                    "registeredUser"
-                );
-
-
-            if (!savedAccount) {
-
-                alert(
-                    "No account found. Please register first."
-                );
-
-                return;
-            }
-
-
-            const registeredUser =
-                JSON.parse(savedAccount);
-
-
-            /* -----------------------------------------
-               CHECK EMAIL
-            ----------------------------------------- */
-
-            if (
-                email.toLowerCase() !==
-                registeredUser.email.toLowerCase()
-            ) {
-
-                alert(
-                    "Incorrect email or password."
-                );
-
-                return;
-            }
-
-
-            /* -----------------------------------------
-               CHECK PASSWORD
-            ----------------------------------------- */
-
-            if (
-                password !==
-                registeredUser.password
-            ) {
-
-                alert(
-                    "Incorrect email or password."
-                );
-
-                return;
-            }
-
-
-            /* -----------------------------------------
-               LOGIN SUCCESS
-            ----------------------------------------- */
-
-            localStorage.setItem(
-                "roundupUser",
-                JSON.stringify(registeredUser)
-            );
-
-
-            localStorage.setItem(
-                "isLoggedIn",
-                "true"
-            );
-
+        if (!savedAccount) {
 
             alert(
-                "Login successful!"
+                "No account found. Please register first."
             );
 
+            return;
+        }
 
-            window.location.href =
-                "dashboard.html";
+
+        let user;
+
+        try {
+
+            user =
+                JSON.parse(savedAccount);
+
+        } catch {
+
+            alert(
+                "Account data is corrupted. Please register again."
+            );
+
+            return;
+        }
+
+
+        if (
+            email.toLowerCase() !==
+            user.email.toLowerCase()
+        ) {
+
+            alert("Incorrect email or password.");
+            return;
 
         }
-    );
+
+
+        if (password !== user.password) {
+
+            alert("Incorrect email or password.");
+            return;
+
+        }
+
+
+        saveUser(user);
+
+
+        localStorage.setItem(
+            "isLoggedIn",
+            "true"
+        );
+
+
+        alert("Login successful!");
+
+
+        window.location.href =
+            "dashboard.html";
+
+    });
 
 }
 
@@ -411,32 +314,25 @@ function setupLogin() {
 
 function setupLogout() {
 
-    const logoutButton =
+    const logout =
         document.querySelector(".logout");
 
-    if (!logoutButton) {
-        return;
-    }
+    if (!logout) return;
 
 
-    logoutButton.addEventListener(
-        "click",
-        function (event) {
+    logout.addEventListener("click", function(event) {
 
-            event.preventDefault();
+        event.preventDefault();
 
+        localStorage.setItem(
+            "isLoggedIn",
+            "false"
+        );
 
-            localStorage.setItem(
-                "isLoggedIn",
-                "false"
-            );
+        window.location.href =
+            "index.html";
 
-
-            window.location.href =
-                "index.html";
-
-        }
-    );
+    });
 
 }
 
@@ -450,17 +346,13 @@ function updateDashboard() {
     const dashboard =
         document.querySelector(".dashboard-body");
 
-    if (!dashboard) {
-        return;
-    }
+    if (!dashboard) return;
 
 
     const user = getUser();
 
 
-    /* -----------------------------------------
-       USER NAME
-    ----------------------------------------- */
+    /* USER NAME */
 
     const userName =
         document.getElementById("userName");
@@ -468,106 +360,134 @@ function updateDashboard() {
     if (userName) {
 
         userName.textContent =
-            user.name || "User";
+            user.name || "there";
 
     }
 
 
-    /* -----------------------------------------
-       ROUND-UP BALANCE
-    ----------------------------------------- */
+    /* BALANCE */
 
-    const roundUpBalance =
-        document.getElementById(
-            "roundUpBalance"
+    setText(
+        "balance",
+        user.roundUpBalance.toFixed(2)
+    );
+
+
+    setText(
+        "bigBalance",
+        user.roundUpBalance.toFixed(2)
+    );
+
+
+    /* TOTAL INVESTED */
+
+    setText(
+        "invested",
+        user.totalSaved.toFixed(2)
+    );
+
+
+    setText(
+        "portfolioValue",
+        user.totalSaved.toFixed(2)
+    );
+
+
+    /* THRESHOLD */
+
+    setText(
+        "bigThreshold",
+        user.settings.threshold
+    );
+
+
+    setAllText(
+        "thresholdDisplay",
+        user.settings.threshold
+    );
+
+
+    /* REMAINING */
+
+    const remaining =
+        Math.max(
+            user.settings.threshold -
+            user.roundUpBalance,
+            0
         );
 
-    if (roundUpBalance) {
 
-        roundUpBalance.textContent =
-            Number(
-                user.roundUpBalance || 0
-            ).toFixed(2);
-
-    }
+    setText(
+        "remaining",
+        remaining.toFixed(2)
+    );
 
 
-    /* -----------------------------------------
-       TOTAL SAVED
-    ----------------------------------------- */
-
-    const totalSaved =
-        document.getElementById(
-            "totalSaved"
-        );
-
-    if (totalSaved) {
-
-        totalSaved.textContent =
-            Number(
-                user.totalSaved || 0
-            ).toFixed(2);
-
-    }
+    setText(
+        "progressRemaining",
+        remaining.toFixed(2)
+    );
 
 
-    /* -----------------------------------------
-       BALANCE
-    ----------------------------------------- */
-
-    const balance =
-        document.getElementById(
-            "balance"
-        );
-
-    if (balance) {
-
-        balance.textContent =
-            Number(
-                user.balance || 0
-            ).toFixed(2);
-
-    }
-
-
-    /* -----------------------------------------
-       TRANSACTIONS
-    ----------------------------------------- */
-
-    renderTransactions();
-
-
-    /* -----------------------------------------
-       PROGRESS
-    ----------------------------------------- */
+    /* PROGRESS */
 
     updateProgress();
 
 
-    /* -----------------------------------------
-       SETTINGS
-    ----------------------------------------- */
+    /* SETTINGS */
 
     updateSettingsUI();
+
+
+    /* TRANSACTIONS */
+
+    renderTransactions();
 
 }
 
 
 /* =========================================================
-   8. TRANSACTION MODAL
+   8. HELPER - SET TEXT
+   ========================================================= */
+
+function setText(id, value) {
+
+    const element =
+        document.getElementById(id);
+
+    if (element) {
+
+        element.textContent = value;
+
+    }
+
+}
+
+
+function setAllText(id, value) {
+
+    const elements =
+        document.querySelectorAll("#" + id);
+
+    elements.forEach(function(element) {
+
+        element.textContent = value;
+
+    });
+
+}
+
+
+/* =========================================================
+   9. TRANSACTION MODAL
    ========================================================= */
 
 function openTransactionModal() {
 
     const modal =
-        document.getElementById(
-            "transactionModal"
-        );
+        document.getElementById("transactionModal");
 
-    if (!modal) {
-        return;
-    }
-
+    if (!modal) return;
 
     modal.classList.add("show");
 
@@ -577,14 +497,9 @@ function openTransactionModal() {
 function closeTransactionModal() {
 
     const modal =
-        document.getElementById(
-            "transactionModal"
-        );
+        document.getElementById("transactionModal");
 
-    if (!modal) {
-        return;
-    }
-
+    if (!modal) return;
 
     modal.classList.remove("show");
 
@@ -592,51 +507,38 @@ function closeTransactionModal() {
 
 
 /* =========================================================
-   9. CALCULATE ROUND-UP
+   10. ROUND-UP CALCULATION
    ========================================================= */
+
+/*
+   ₹47  → ₹50  → ₹3
+   ₹94  → ₹100 → ₹6
+   ₹101 → ₹110 → ₹9
+*/
 
 function calculateRoundUp(amount) {
 
-    /*
-       Example:
-
-       ₹99 → ₹100
-       Round-up = ₹1
-
-       ₹94 → ₹100
-       Round-up = ₹6
-    */
-
-
     const roundedAmount =
-        Math.ceil(amount);
-
-    const roundUp =
-        roundedAmount - amount;
-
+        Math.ceil(amount / 10) * 10;
 
     return Number(
-        roundUp.toFixed(2)
+        (roundedAmount - amount).toFixed(2)
     );
 
 }
 
 
 /* =========================================================
-   10. ADD TRANSACTION
+   11. ADD TRANSACTION
    ========================================================= */
 
 function addTransaction() {
 
     const merchantInput =
-        document.getElementById(
-            "merchantName"
-        );
+        document.getElementById("merchantName");
 
     const amountInput =
-        document.getElementById(
-            "transactionAmount"
-        );
+        document.getElementById("transactionAmount");
 
 
     if (!merchantInput || !amountInput) {
@@ -651,105 +553,60 @@ function addTransaction() {
         Number(amountInput.value);
 
 
-    /* -----------------------------------------
-       VALIDATION
-    ----------------------------------------- */
-
     if (!merchant) {
 
-        alert(
-            "Please enter a merchant name."
-        );
-
+        alert("Please enter a merchant name.");
         return;
+
     }
 
 
-    if (
-        isNaN(amount) ||
-        amount <= 0
-    ) {
+    if (!amount || amount <= 0) {
 
-        alert(
-            "Please enter a valid transaction amount."
-        );
-
+        alert("Please enter a valid amount.");
         return;
+
     }
 
 
     const user = getUser();
 
 
-    /* -----------------------------------------
-       CALCULATE ROUND-UP
-    ----------------------------------------- */
-
-    let roundUp =
-        calculateRoundUp(amount);
-
-
-    /* -----------------------------------------
-       DAILY FREQUENCY
-    ----------------------------------------- */
+    /* DAILY FREQUENCY */
 
     const today =
         new Date().toLocaleDateString();
 
 
-    if (
-        user.lastTransactionDate !== today
-    ) {
+    if (user.lastTransactionDate !== today) {
 
-        user.lastTransactionDate =
-            today;
-
-        user.todayRoundOffCount = 0;
-
-    }
-
-
-    if (
-        user.todayRoundOffCount === undefined
-    ) {
-
+        user.lastTransactionDate = today;
         user.todayRoundOffCount = 0;
 
     }
 
 
     const frequency =
-        Number(
-            user.settings.frequency
-        ) || 2;
+        Number(user.settings.frequency) || 5;
 
 
-    /*
-       Frequency means:
-
-       2× = maximum 2 round-offs/day
-       5× = maximum 5 round-offs/day
-       10× = maximum 10 round-offs/day
-    */
+    let roundUp = 0;
 
 
     if (
-        user.todayRoundOffCount >=
+        user.todayRoundOffCount <
         frequency
     ) {
 
-        roundUp = 0;
-
-    } else {
+        roundUp =
+            calculateRoundUp(amount);
 
         user.todayRoundOffCount++;
 
     }
 
 
-    /* -----------------------------------------
-       ADD TRANSACTION
-    ----------------------------------------- */
+    /* TRANSACTION */
 
     const transaction = {
 
@@ -771,16 +628,10 @@ function addTransaction() {
     );
 
 
-    /* -----------------------------------------
-       UPDATE BALANCE
-    ----------------------------------------- */
+    /* UPDATE BALANCE */
 
     user.balance += amount;
 
-
-    /* -----------------------------------------
-       ADD TO ROUND-UP POOL
-    ----------------------------------------- */
 
     user.roundUpBalance +=
         roundUp;
@@ -792,33 +643,20 @@ function addTransaction() {
         );
 
 
-    /* -----------------------------------------
-       CHECK THRESHOLD
-    ----------------------------------------- */
+    /* THRESHOLD */
 
     processThreshold(user);
 
 
-    /* -----------------------------------------
-       SAVE
-    ----------------------------------------- */
-
     saveUser(user);
 
 
-    /* Clear inputs */
-
     merchantInput.value = "";
-
     amountInput.value = "";
 
 
-    /* Close modal */
-
     closeTransactionModal();
 
-
-    /* Update dashboard */
 
     updateDashboard();
 
@@ -835,53 +673,27 @@ function addTransaction() {
 
 
 /* =========================================================
-   11. THRESHOLD
+   12. THRESHOLD PROCESSING
    ========================================================= */
 
 function processThreshold(user) {
 
     const threshold =
-        Number(
-            user.settings.threshold
-        );
+        Number(user.settings.threshold);
 
 
-    if (
-        !threshold ||
-        threshold <= 0
-    ) {
+    if (!threshold || threshold <= 0) {
         return;
     }
 
 
-    /*
-       Example:
-
-       Threshold = ₹1000
-
-       Pool = ₹999
-
-       New round-up = ₹5
-
-       Pool = ₹1004
-
-       Investment = ₹1000
-
-       Remaining pool = ₹4
-    */
-
-
     while (
-        user.roundUpBalance >=
-        threshold
+        user.roundUpBalance >= threshold
     ) {
 
-        user.roundUpBalance -=
-            threshold;
+        user.roundUpBalance -= threshold;
 
-
-        user.totalSaved +=
-            threshold;
+        user.totalSaved += threshold;
 
     }
 
@@ -901,7 +713,7 @@ function processThreshold(user) {
 
 
 /* =========================================================
-   12. DELETE TRANSACTION
+   13. DELETE TRANSACTION
    ========================================================= */
 
 function deleteTransaction(id) {
@@ -911,7 +723,7 @@ function deleteTransaction(id) {
 
     const index =
         user.transactions.findIndex(
-            function (transaction) {
+            function(transaction) {
 
                 return transaction.id === id;
 
@@ -919,37 +731,30 @@ function deleteTransaction(id) {
         );
 
 
-    if (index === -1) {
-        return;
-    }
+    if (index === -1) return;
 
 
     const transaction =
         user.transactions[index];
 
 
-    /* Remove transaction amount */
-
     user.balance -=
         transaction.amount;
 
-
-    /* Remove its round-up */
 
     user.roundUpBalance -=
         transaction.roundUp;
 
 
-    if (
-        user.roundUpBalance < 0
-    ) {
-
-        user.roundUpBalance = 0;
-
+    if (user.balance < 0) {
+        user.balance = 0;
     }
 
 
-    /* Remove transaction */
+    if (user.roundUpBalance < 0) {
+        user.roundUpBalance = 0;
+    }
+
 
     user.transactions.splice(
         index,
@@ -966,20 +771,15 @@ function deleteTransaction(id) {
 
 
 /* =========================================================
-   13. RENDER TRANSACTIONS
+   14. RENDER TRANSACTIONS
    ========================================================= */
 
 function renderTransactions() {
 
     const list =
-        document.querySelector(
-            ".transaction-list"
-        );
+        document.querySelector(".transaction-list");
 
-
-    if (!list) {
-        return;
-    }
+    if (!list) return;
 
 
     const user = getUser();
@@ -988,9 +788,7 @@ function renderTransactions() {
     list.innerHTML = "";
 
 
-    if (
-        user.transactions.length === 0
-    ) {
+    if (user.transactions.length === 0) {
 
         list.innerHTML = `
             <p style="
@@ -1008,97 +806,85 @@ function renderTransactions() {
 
     user.transactions
         .slice(0, 10)
-        .forEach(
-            function (transaction) {
+        .forEach(function(transaction) {
 
 
-                const row =
-                    document.createElement(
-                        "div"
-                    );
+            const row =
+                document.createElement("div");
 
 
-                row.className =
-                    "transaction-row";
+            row.className =
+                "transaction-row";
 
 
-                row.innerHTML = `
+            row.innerHTML = `
 
-                    <div class="transaction-left">
+                <div class="transaction-left">
 
-                        <div class="transaction-icon">
-                            💳
-                        </div>
-
-                        <div>
-
-                            <strong>
-                                ${escapeHTML(
-                                    transaction.merchant
-                                )}
-                            </strong>
-
-                            <p>
-                                ${transaction.date}
-                            </p>
-
-                        </div>
-
+                    <div class="transaction-icon">
+                        💳
                     </div>
 
-
-                    <div class="transaction-right">
+                    <div>
 
                         <strong>
-                            ₹${Number(
-                                transaction.amount
-                            ).toFixed(2)}
+                            ${escapeHTML(
+                                transaction.merchant
+                            )}
                         </strong>
 
-                        <span>
-                            +₹${Number(
-                                transaction.roundUp
-                            ).toFixed(2)}
-                        </span>
-
-                        <button
-                            class="delete-transaction"
-                            onclick="
-                                deleteTransaction(
-                                    ${transaction.id}
-                                )
-                            "
-                        >
-                            Delete
-                        </button>
+                        <p>
+                            ${transaction.date}
+                        </p>
 
                     </div>
 
-                `;
+                </div>
 
 
-                list.appendChild(row);
+                <div class="transaction-right">
 
-            }
-        );
+                    <strong>
+                        ₹${Number(
+                            transaction.amount
+                        ).toFixed(2)}
+                    </strong>
+
+                    <span>
+                        +₹${Number(
+                            transaction.roundUp
+                        ).toFixed(2)}
+                    </span>
+
+                    <button
+                        class="delete-transaction"
+                        onclick="deleteTransaction(${transaction.id})"
+                    >
+                        Delete
+                    </button>
+
+                </div>
+
+            `;
+
+
+            list.appendChild(row);
+
+        });
 
 }
 
 
 /* =========================================================
-   14. ESCAPE HTML
+   15. ESCAPE HTML
    ========================================================= */
 
 function escapeHTML(text) {
 
     const div =
-        document.createElement(
-            "div"
-        );
-
+        document.createElement("div");
 
     div.textContent = text;
-
 
     return div.innerHTML;
 
@@ -1106,7 +892,7 @@ function escapeHTML(text) {
 
 
 /* =========================================================
-   15. UPDATE PROGRESS
+   16. UPDATE PROGRESS
    ========================================================= */
 
 function updateProgress() {
@@ -1115,32 +901,23 @@ function updateProgress() {
 
 
     const threshold =
-        Number(
-            user.settings.threshold
-        ) || 1000;
+        Number(user.settings.threshold) || 100;
 
 
     const pool =
-        Number(
-            user.roundUpBalance
-        ) || 0;
+        Number(user.roundUpBalance) || 0;
 
 
     let percentage =
         (pool / threshold) * 100;
 
 
-    if (percentage > 100) {
-        percentage = 100;
-    }
+    percentage =
+        Math.min(percentage, 100);
 
-
-    /* Progress bar */
 
     const progressFill =
-        document.getElementById(
-            "progressFill"
-        );
+        document.getElementById("progressFill");
 
 
     if (progressFill) {
@@ -1151,329 +928,192 @@ function updateProgress() {
     }
 
 
-    /* Percentage */
+    setText(
+        "progressPercent",
+        Math.round(percentage)
+    );
 
-    const progressPercent =
-        document.getElementById(
-            "progressPercent"
+
+    const remaining =
+        Math.max(
+            threshold - pool,
+            0
         );
 
 
-    if (progressPercent) {
-
-        progressPercent.textContent =
-            Math.round(percentage);
-
-    }
+    setText(
+        "progressRemaining",
+        remaining.toFixed(2)
+    );
 
 
-    /* Remaining */
-
-    const progressRemaining =
-        document.getElementById(
-            "progressRemaining"
-        );
+    setText(
+        "bigThreshold",
+        threshold
+    );
 
 
-    if (progressRemaining) {
-
-        const remaining =
-            Math.max(
-                threshold - pool,
-                0
-            );
-
-
-        progressRemaining.textContent =
-            remaining.toFixed(2);
-
-    }
-
-
-    /* Big threshold */
-
-    const bigThreshold =
-        document.getElementById(
-            "bigThreshold"
-        );
-
-
-    if (bigThreshold) {
-
-        bigThreshold.textContent =
-            threshold;
-
-    }
+    setAllText(
+        "thresholdDisplay",
+        threshold
+    );
 
 }
 
 
 /* =========================================================
-   16. INVESTMENT SETTINGS
+   17. INVESTMENT CYCLE
    ========================================================= */
 
-function setupInvestmentSettings() {
+function setInvestmentCycle(
+    cycle,
+    button
+) {
 
-    /* -----------------------------------------
-       MONTHLY / YEARLY
-    ----------------------------------------- */
-
-    const cycleButtons =
+    const buttons =
         document.querySelectorAll(
             ".cycle-btn"
         );
 
 
-    cycleButtons.forEach(
-        function (button) {
+    /*
+       IMPORTANT:
+       Only cycle buttons are affected.
+       Threshold/frequency stay selected.
+    */
 
-            button.addEventListener(
-                "click",
-                function () {
+    buttons.forEach(function(btn) {
 
-                    cycleButtons.forEach(
-                        function (btn) {
+        btn.classList.remove(
+            "selected"
+        );
 
-                            btn.classList.remove(
-                                "selected"
-                            );
-
-                        }
-                    );
+    });
 
 
-                    button.classList.add(
-                        "selected"
-                    );
-
-
-                    const user =
-                        getUser();
-
-
-                    user.settings.cycle =
-                        button.dataset.cycle ||
-                        button.textContent
-                            .trim()
-                            .toLowerCase();
-
-
-                    saveUser(user);
-
-                }
-            );
-
-        }
+    button.classList.add(
+        "selected"
     );
 
 
-    /* -----------------------------------------
-       FREQUENCY
-    ----------------------------------------- */
+    const user = getUser();
 
-    const frequencyButtons =
-        document.querySelectorAll(
-            ".frequency-btn"
-        );
 
+    user.settings.cycle =
+        cycle;
 
-    frequencyButtons.forEach(
-        function (button) {
 
-            button.addEventListener(
-                "click",
-                function () {
+    saveUser(user);
 
-                    frequencyButtons.forEach(
-                        function (btn) {
 
-                            btn.classList.remove(
-                                "selected"
-                            );
-
-                        }
-                    );
-
-
-                    button.classList.add(
-                        "selected"
-                    );
-
-
-                    const user =
-                        getUser();
-
-
-                    const frequency =
-                        Number(
-                            button.dataset.frequency
-                        ) ||
-                        parseInt(
-                            button.textContent
-                        );
-
-
-                    user.settings.frequency =
-                        frequency;
-
-
-                    saveUser(user);
-
-                }
-            );
-
-        }
-    );
-
-
-    /* -----------------------------------------
-       THRESHOLD BUTTONS
-    ----------------------------------------- */
-
-    const thresholdButtons =
-        document.querySelectorAll(
-            ".threshold-btn"
-        );
-
-
-    thresholdButtons.forEach(
-        function (button) {
-
-            button.addEventListener(
-                "click",
-                function () {
-
-                    thresholdButtons.forEach(
-                        function (btn) {
-
-                            btn.classList.remove(
-                                "selected"
-                            );
-
-                        }
-                    );
-
-
-                    button.classList.add(
-                        "selected"
-                    );
-
-
-                    const user =
-                        getUser();
-
-
-                    const threshold =
-                        Number(
-                            button.dataset.threshold
-                        );
-
-
-                    if (
-                        !isNaN(threshold)
-                    ) {
-
-                        user.settings.threshold =
-                            threshold;
-
-                    }
-
-
-                    saveUser(user);
-
-                    updateProgress();
-
-                }
-            );
-
-        }
-    );
-
-
-    /* -----------------------------------------
-       THRESHOLD INPUT
-    ----------------------------------------- */
-
-    const thresholdInput =
-        document.querySelector(
-            ".threshold-input input"
-        );
-
-
-    if (thresholdInput) {
-
-        thresholdInput.addEventListener(
-            "input",
-            function () {
-
-                const value =
-                    Number(
-                        thresholdInput.value
-                    );
-
-
-                if (
-                    value > 0
-                ) {
-
-                    const user =
-                        getUser();
-
-
-                    user.settings.threshold =
-                        value;
-
-
-                    saveUser(user);
-
-                    updateProgress();
-
-                }
-
-            }
-        );
-
-    }
-
-
-    /* -----------------------------------------
-       SAVE PLAN
-    ----------------------------------------- */
-
-    const saveButton =
-        document.querySelector(
-            ".save-plan-btn"
-        );
-
-
-    if (saveButton) {
-
-        saveButton.addEventListener(
-            "click",
-            function () {
-
-                const user =
-                    getUser();
-
-
-                saveUser(user);
-
-                updateSettingsUI();
-
-                alert(
-                    "Investment plan saved!"
-                );
-
-            }
-        );
-
-    }
+    updateSettingsUI();
 
 }
 
 
 /* =========================================================
-   17. UPDATE SETTINGS UI
+   18. CHANGE THRESHOLD
+   ========================================================= */
+
+function changeThreshold(
+    amount,
+    button
+) {
+
+    const buttons =
+        document.querySelectorAll(
+            ".threshold-btn:not(.cycle-btn):not(.frequency-btn)"
+        );
+
+
+    /*
+       IMPORTANT:
+       Only threshold buttons are affected.
+    */
+
+    buttons.forEach(function(btn) {
+
+        btn.classList.remove(
+            "selected"
+        );
+
+    });
+
+
+    button.classList.add(
+        "selected"
+    );
+
+
+    const user = getUser();
+
+
+    user.settings.threshold =
+        Number(amount);
+
+
+    saveUser(user);
+
+
+    updateProgress();
+
+
+    updateSettingsUI();
+
+}
+
+
+/* =========================================================
+   19. DAILY ROUND-OFF FREQUENCY
+   ========================================================= */
+
+function setRoundOffFrequency(
+    frequency,
+    button
+) {
+
+    const buttons =
+        document.querySelectorAll(
+            ".frequency-btn"
+        );
+
+
+    /*
+       IMPORTANT:
+       Only frequency buttons are affected.
+    */
+
+    buttons.forEach(function(btn) {
+
+        btn.classList.remove(
+            "selected"
+        );
+
+    });
+
+
+    button.classList.add(
+        "selected"
+    );
+
+
+    const user = getUser();
+
+
+    user.settings.frequency =
+        Number(frequency);
+
+
+    saveUser(user);
+
+
+    updateSettingsUI();
+
+}
+
+
+/* =========================================================
+   20. UPDATE SETTINGS UI
    ========================================================= */
 
 function updateSettingsUI() {
@@ -1481,87 +1121,55 @@ function updateSettingsUI() {
     const user = getUser();
 
 
-    /* -----------------------------------------
-       CYCLE
-    ----------------------------------------- */
+    /* CYCLE */
 
-    const cycleButtons =
-        document.querySelectorAll(
-            ".cycle-btn"
-        );
+    document
+        .querySelectorAll(".cycle-btn")
+        .forEach(function(button) {
 
-
-    cycleButtons.forEach(
-        function (button) {
-
-            const value =
-                button.dataset.cycle ||
-                button.textContent
-                    .trim()
-                    .toLowerCase();
-
-
-            button.classList.toggle(
-                "selected",
-                value ===
-                user.settings.cycle
-            );
-
-        }
-    );
-
-
-    /* -----------------------------------------
-       FREQUENCY
-    ----------------------------------------- */
-
-    const frequencyButtons =
-        document.querySelectorAll(
-            ".frequency-btn"
-        );
-
-
-    frequencyButtons.forEach(
-        function (button) {
-
-            const value =
-                Number(
-                    button.dataset.frequency
-                ) ||
-                parseInt(
-                    button.textContent
+            const cycle =
+                button.getAttribute(
+                    "onclick"
                 );
 
-
             button.classList.toggle(
                 "selected",
-                value ===
-                Number(
-                    user.settings.frequency
+                cycle &&
+                cycle.includes(
+                    "'" +
+                    user.settings.cycle +
+                    "'"
                 )
             );
 
-        }
-    );
+        });
 
 
-    /* -----------------------------------------
-       THRESHOLD
-    ----------------------------------------- */
+    /* THRESHOLD */
 
-    const thresholdButtons =
-        document.querySelectorAll(
-            ".threshold-btn"
-        );
+    document
+        .querySelectorAll(
+            ".threshold-btn:not(.cycle-btn):not(.frequency-btn)"
+        )
+        .forEach(function(button) {
+
+            const onclick =
+                button.getAttribute(
+                    "onclick"
+                );
 
 
-    thresholdButtons.forEach(
-        function (button) {
+            const match =
+                onclick &&
+                onclick.match(
+                    /changeThreshold\((\d+)/
+                );
+
 
             const value =
-                Number(
-                    button.dataset.threshold
-                );
+                match
+                    ? Number(match[1])
+                    : 0;
 
 
             button.classList.toggle(
@@ -1572,86 +1180,78 @@ function updateSettingsUI() {
                 )
             );
 
-        }
+        });
+
+
+    /* FREQUENCY */
+
+    document
+        .querySelectorAll(
+            ".frequency-btn"
+        )
+        .forEach(function(button) {
+
+            const onclick =
+                button.getAttribute(
+                    "onclick"
+                );
+
+
+            const match =
+                onclick &&
+                onclick.match(
+                    /setRoundOffFrequency\((\d+)/
+                );
+
+
+            const value =
+                match
+                    ? Number(match[1])
+                    : 0;
+
+
+            button.classList.toggle(
+                "selected",
+                value ===
+                Number(
+                    user.settings.frequency
+                )
+            );
+
+        });
+
+
+    /* CURRENT PLAN */
+
+    setText(
+        "cycleDisplay",
+        capitalize(
+            user.settings.cycle
+        )
     );
 
 
-    /* Threshold input */
-
-    const thresholdInput =
-        document.querySelector(
-            ".threshold-input input"
-        );
+    setAllText(
+        "thresholdDisplay",
+        user.settings.threshold
+    );
 
 
-    if (thresholdInput) {
-
-        thresholdInput.value =
-            user.settings.threshold;
-
-    }
-
-
-    /* Current plan */
-
-    const currentCycle =
-        document.querySelector(
-            "[data-current-cycle]"
-        );
-
-
-    if (currentCycle) {
-
-        currentCycle.textContent =
-            capitalize(
-                user.settings.cycle
-            );
-
-    }
-
-
-    const currentThreshold =
-        document.querySelector(
-            "[data-current-threshold]"
-        );
-
-
-    if (currentThreshold) {
-
-        currentThreshold.textContent =
-            "₹" +
-            user.settings.threshold;
-
-    }
-
-
-    const currentFrequency =
-        document.querySelector(
-            "[data-current-frequency]"
-        );
-
-
-    if (currentFrequency) {
-
-        currentFrequency.textContent =
-            user.settings.frequency +
-            "×";
-
-    }
+    setText(
+        "frequencyDisplay",
+        user.settings.frequency
+    );
 
 }
 
 
 /* =========================================================
-   18. CAPITALIZE
+   21. CAPITALIZE
    ========================================================= */
 
 function capitalize(text) {
 
-    if (!text) {
-        return "";
-    }
-
+    if (!text) return "";
 
     return (
         text.charAt(0).toUpperCase() +
@@ -1662,12 +1262,174 @@ function capitalize(text) {
 
 
 /* =========================================================
-   19. INITIALIZE EVERYTHING
+   22. SIDEBAR NAVIGATION
+   ========================================================= */
+
+function setupSidebar() {
+
+    const navItems =
+        document.querySelectorAll(
+            ".dashboard-nav .nav-item"
+        );
+
+
+    const main =
+        document.querySelector(
+            ".dashboard-main"
+        );
+
+
+    if (!navItems.length || !main) {
+        return;
+    }
+
+
+    navItems.forEach(function(item, index) {
+
+        item.addEventListener(
+            "click",
+            function(event) {
+
+                event.preventDefault();
+
+
+                /*
+                   Remove active from all
+                */
+
+                navItems.forEach(
+                    function(nav) {
+
+                        nav.classList.remove(
+                            "active"
+                        );
+
+                    }
+                );
+
+
+                /*
+                   Add active to clicked one
+                */
+
+                item.classList.add(
+                    "active"
+                );
+
+
+                /*
+                   Scroll to correct section
+                */
+
+                if (index === 0) {
+
+                    window.scrollTo({
+                        top: 0,
+                        behavior: "smooth"
+                    });
+
+                }
+
+
+                if (index === 1) {
+
+                    const transactions =
+                        document.querySelector(
+                            ".transactions-card"
+                        );
+
+                    if (transactions) {
+
+                        transactions.scrollIntoView({
+                            behavior: "smooth"
+                        });
+
+                    }
+
+                }
+
+
+                if (index === 2) {
+
+                    const portfolio =
+                        document.querySelector(
+                            ".portfolio-card"
+                        );
+
+                    if (portfolio) {
+
+                        portfolio.scrollIntoView({
+                            behavior: "smooth"
+                        });
+
+                    }
+
+                }
+
+
+                if (index === 3) {
+
+                    const settings =
+                        document.querySelector(
+                            ".investment-settings-card"
+                        );
+
+                    if (settings) {
+
+                        settings.scrollIntoView({
+                            behavior: "smooth"
+                        });
+
+                    }
+
+                }
+
+            }
+        );
+
+    });
+
+}
+
+
+/* =========================================================
+   23. CLOSE MODAL WHEN CLICKING OUTSIDE
+   ========================================================= */
+
+function setupModalOutsideClick() {
+
+    const modal =
+        document.getElementById(
+            "transactionModal"
+        );
+
+
+    if (!modal) return;
+
+
+    modal.addEventListener(
+        "click",
+        function(event) {
+
+            if (event.target === modal) {
+
+                closeTransactionModal();
+
+            }
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   24. INITIALIZE
    ========================================================= */
 
 document.addEventListener(
     "DOMContentLoaded",
-    function () {
+    function() {
 
         setupRegister();
 
@@ -1675,7 +1437,9 @@ document.addEventListener(
 
         setupLogout();
 
-        setupInvestmentSettings();
+        setupSidebar();
+
+        setupModalOutsideClick();
 
         updateDashboard();
 
@@ -1684,7 +1448,7 @@ document.addEventListener(
 
 
 /* =========================================================
-   20. MAKE FUNCTIONS AVAILABLE TO HTML
+   25. MAKE FUNCTIONS AVAILABLE TO HTML
    ========================================================= */
 
 window.openTransactionModal =
@@ -1698,3 +1462,12 @@ window.addTransaction =
 
 window.deleteTransaction =
     deleteTransaction;
+
+window.setInvestmentCycle =
+    setInvestmentCycle;
+
+window.changeThreshold =
+    changeThreshold;
+
+window.setRoundOffFrequency =
+    setRoundOffFrequency;
