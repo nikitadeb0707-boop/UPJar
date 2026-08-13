@@ -13,7 +13,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
+@app.get("/")
+def read_root():
+    return {"status": "healthy", "message": "UPJar API is running"}
 app.include_router(roundup.router)
 app.include_router(user.router)
 app.include_router(auth.router)
